@@ -1,6 +1,6 @@
 
 export const saveCredentials = async (email, password) => {
-  const response = await fetch('https://no-ai-code.vercel.app/save-credentials', {
+  const response = await fetch('https://noaicode-production.up.railway.app/save-credentials', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -9,7 +9,7 @@ export const saveCredentials = async (email, password) => {
 };
 
 export const checkCredentials = async (email) => {
-  const response = await fetch('https://no-ai-code.vercel.app/check-credentials', {
+  const response = await fetch('https://noaicode-production.up.railway.app/check-credentials', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
@@ -18,7 +18,7 @@ export const checkCredentials = async (email) => {
 };
 
 export const checkAllCredentials = async (email, password) => {
-  const response = await fetch('https://no-ai-code.vercel.app/check-all-credentials', {
+  const response = await fetch('https://noaicode-production.up.railway.app/check-all-credentials', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password}),
@@ -27,7 +27,7 @@ export const checkAllCredentials = async (email, password) => {
 };
 
 export const delCredentials = async (email) => {
-  const response = await fetch('https://no-ai-code.vercel.app/del-credentials', {
+  const response = await fetch('https://noaicode-production.up.railway.app/del-credentials', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email}),
@@ -36,7 +36,7 @@ export const delCredentials = async (email) => {
 };
 
 export const changeCredentials = async (email, password) => {
-  const response = await fetch('https://no-ai-code.vercel.app/change-credentials', {
+  const response = await fetch('https://noaicode-production.up.railway.app/change-credentials', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -45,7 +45,7 @@ export const changeCredentials = async (email, password) => {
 };
 
 export const getCredentials = async () => {
-  const response = await fetch('https://no-ai-code-pls.vercel.app/get-credentials', {
+  const response = await fetch('https://noaicode-production.up.railway.app/get-credentials', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
