@@ -6,8 +6,14 @@ import { Client } from 'pg';
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true })); 
 
 app.options('*', cors()); 
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
 // Configurazione PostgreSQL
 const pgConfig = {
   user: process.env.DB_USER || 'stefano',
@@ -59,17 +65,63 @@ app.post('/save-credentials', async (req, res) => {
 
 // Endpoint per verificare esistenza email
 app.post('/check-credentials', async (req, res) => {
-  const { email } = req.body;
-
   try {
-    const result = await req.db.query(
+    // 1. Controlla connessione al database
+    if (!client._connected) {
+      console.error('⚠️ Tentativo di accesso con database disconnesso');
+      return res.status(500).json({ 
+        error: "Database non disponibile",
+        details: "Il server non può connettersi al database"
+      });
+    }
+
+    // 2. Valida l'input
+    if (!req.body || !req.body.email) {
+      console.warn('❌ Richiesta malformata:', req.body);
+      return res.status(400).json({ 
+        error: "Email mancante",
+        details: "Il campo 'email' è obbligatorio nel body della richiesta"
+      });
+    }
+
+    const { email } = req.body;
+
+    // 3. Log della richiesta (solo in sviluppo)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`🔍 Verifica credenziali per: ${email}`);
+    }
+
+    // 4. Interroga il database
+    const result = await client.query(
       'SELECT 1 FROM Utenti WHERE email = $1',
       [email]
     );
-    res.status(200).json({ exists: result.rowCount > 0 });
+
+    // 5. Risposta
+    const exists = result.rowCount > 0;
+    
+    if (exists) {
+      console.log(`✅ Email trovata: ${email}`);
+    } else {
+      console.warn(`⚠️ Email non registrata: ${email}`);
+    }
+
+    res.status(200).json({ 
+      exists,
+      message: exists ? "Email esistente" : "Email non registrata"
+    });
+
   } catch (err) {
-    console.error('❌ ERRORE DETTAGLIATO:', err);
-    res.status(500).json({ error: 'Errore nel controllo email' });
+    // 6. Gestione errori
+    console.error('🔥 Errore in /check-credentials:', err.stack);
+    
+    res.status(500).json({
+      error: "Errore interno del server",
+      details: process.env.NODE_ENV === 'production' 
+        ? "Si è verificato un errore" 
+        : err.message,
+      code: "DB_QUERY_ERROR"
+    });
   }
 });
 
