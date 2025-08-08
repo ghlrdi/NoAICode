@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+app.options('*', cors()); 
 // Configurazione PostgreSQL
 const pgConfig = {
   user: process.env.DB_USER || 'stefano',
