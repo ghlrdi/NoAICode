@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 });
 
 // Endpoint per salvare credenziali
-app.post('/save-credentials', async (req, res) => {
+app.post('/api/save-credentials', async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -64,7 +64,7 @@ app.post('/save-credentials', async (req, res) => {
 });
 
 // Endpoint per verificare esistenza email
-app.post('/check-credentials', async (req, res) => {
+app.post('/api/check-credentials', async (req, res) => {
   try {
     // 1. Controlla connessione al database
     if (!client._connected) {
@@ -126,7 +126,7 @@ app.post('/check-credentials', async (req, res) => {
 });
 
 // Endpoint per verificare credenziali complete
-app.post('/check-all-credentials', async (req, res) => {
+app.post('/api/check-all-credentials', async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -142,7 +142,7 @@ app.post('/check-all-credentials', async (req, res) => {
 });
 
 // Endpoint per eliminare credenziali
-app.post('/del-credentials', async (req, res) => {
+app.post('/api/del-credentials', async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -158,7 +158,7 @@ app.post('/del-credentials', async (req, res) => {
 });
 
 // Endpoint per modificare password
-app.post('/change-credentials', async (req, res) => {
+app.post('/api/change-credentials', async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -174,7 +174,7 @@ app.post('/change-credentials', async (req, res) => {
 });
 
 // Endpoint per ottenere tutti gli utenti
-app.get('/get-credentials', async (req, res) => {
+app.get('/api/get-credentials', async (req, res) => {
   try {
     const result = await req.db.query('SELECT * FROM Utenti');
     res.status(200).json(result.rows);
