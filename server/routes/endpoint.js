@@ -54,6 +54,7 @@ app.post('/api/save-credentials', async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    console.log("account creato")
     await req.db.query(
       'INSERT INTO Utenti (email, password) VALUES ($1, $2)',
       [email, password]
