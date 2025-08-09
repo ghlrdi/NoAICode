@@ -1,6 +1,9 @@
 
+const BASE_URL = '/api' // in produzione richiama lo stesso dominio ma con prefisso API
+
+
 export const saveCredentials = async (email, password) => {
-  const response = await fetch('https://noaicode-production.up.railway.app/api/save-credentials', {
+  const response = await fetch(`${BASE_URL}/save-credentials`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -9,7 +12,7 @@ export const saveCredentials = async (email, password) => {
 };
 
 export const checkCredentials = async (email) => {
-  const response = await fetch('https://noaicode-production.up.railway.app/api/check-credentials', {
+  const response = await fetch(`${BASE_URL}/check-credentials`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
@@ -18,7 +21,7 @@ export const checkCredentials = async (email) => {
 };
 
 export const checkAllCredentials = async (email, password) => {
-  const response = await fetch('https://noaicode-production.up.railway.app/api/check-all-credentials', {
+  const response = await fetch(`${BASE_URL}/check-all-credentials`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password}),
