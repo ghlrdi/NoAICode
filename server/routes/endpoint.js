@@ -27,20 +27,18 @@ const pgConfig = {
 
 // Creazione e connessione del client
 const client = new Client(pgConfig);
-(async () => {
-  try {
-    await client.connect();
-    console.log('✅ Connesso al database PostgreSQL');
-    
 
-    // Avvio server
+client.connect()
+  .then(() => {
+    console.log('✅ Connesso al database PostgreSQL');
+    // Avvio server solo dopo la connessione
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
-  } catch (err) {
+  })
+  .catch((err) => {
     console.error('❌ Errore connessione database:', err);
     process.exit(1);
-  }
-})();
+  });
 
 // Middleware per iniettare il client nelle request
 app.use((req, res, next) => {
