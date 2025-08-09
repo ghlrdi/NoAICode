@@ -2,8 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { Client } from 'pg';
-import path from 'path';
-import { fileURLToPath } from 'url';
+
 
 const app = express();
 app.use(cors());
@@ -190,13 +189,4 @@ app.get('/api/get-credentials', async (req, res) => {
 // Endpoint di test
 app.get('/', (req, res) => {
   res.send('🚀 Server Express attivo con PostgreSQL!');
-});
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.use(express.static(path.join(__dirname, '../client/dist')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
