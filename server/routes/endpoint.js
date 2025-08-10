@@ -200,3 +200,16 @@ app.post('/api/test-fetch', (req, res) => {
 app.get('/', (req, res) => {
   res.send('🚀 Server Express attivo con PostgreSQL!');
 });
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static files from Vite's build
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Catch-all to send index.html for SPA routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});

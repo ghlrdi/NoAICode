@@ -1,0 +1,7 @@
+POST https://noaicode-production.up.railway.app/api/save-credentials
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "ciao123"
+}
