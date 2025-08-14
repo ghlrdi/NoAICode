@@ -31,18 +31,20 @@ const client = new Client(pgConfig);
 client.connect()
   .then(() => {
     console.log('✅ Connesso al database PostgreSQL');
-    // Avvio server solo dopo la connessione
-    const PORT = process.env.PORT || 3001;
-    app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
   })
   .catch((err) => {
-    console.error('❌ Errore connessione database:', err);
-    process.exit(1);
+    console.error('❌ Errore connessione database:', err.message);
+    console.log('⚠️ Server avviato senza database - solo endpoint di test disponibili');
   });
+
+// Avvio server indipendentemente dalla connessione database
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
 
 // Middleware per iniettare il client nelle request
 app.use((req, res, next) => {
   req.db = client;
+  req.dbConnected = client._connected || false;
   next();
 });
 
@@ -97,7 +99,7 @@ app.post('/api/check-credentials', async (req, res) => {
       [email]
     );
 
-    // 5. Risposta
+    
     const exists = result.rowCount > 0;
     
     if (exists) {
@@ -184,7 +186,30 @@ app.get('/api/get-credentials', async (req, res) => {
   }
 });
 
+// Production test endpoint for deployment verification
+// Accessible via both GET and POST for server health checks
+app.get('/api/test-fetch', (req, res) => {
+  res.status(200).json({ message: "Test fetch OK" });
+});
+
+app.post('/api/test-fetch', (req, res) => {
+  res.status(200).json({ message: "Test fetch OK" });
+});
+
 // Endpoint di test
 app.get('/', (req, res) => {
   res.send('🚀 Server Express attivo con PostgreSQL!');
+});
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static files from Vite's build
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Catch-all to send index.html for SPA routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
