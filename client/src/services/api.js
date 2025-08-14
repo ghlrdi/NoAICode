@@ -1,5 +1,5 @@
 
-const BASE_URL = '/api' // in produzione richiama lo stesso dominio ma con prefisso API
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 
 export const saveCredentials = async (email, password) => {
