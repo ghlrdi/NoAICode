@@ -30,7 +30,7 @@ export const checkAllCredentials = async (email, password) => {
 };
 
 export const delCredentials = async (email) => {
-  const response = await fetch('https://noaicode-production.up.railway.app/api/del-credentials', {
+  const response = await fetch(`${BASE_URL}/del-credentials`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email}),
@@ -39,7 +39,7 @@ export const delCredentials = async (email) => {
 };
 
 export const changeCredentials = async (email, password) => {
-  const response = await fetch('https://noaicode-production.up.railway.app/api/change-credentials', {
+  const response = await fetch(`${BASE_URL}/change-credentials`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -48,7 +48,7 @@ export const changeCredentials = async (email, password) => {
 };
 
 export const getCredentials = async () => {
-  const response = await fetch('https://noaicode-production.up.railway.app/api/get-credentials', {
+  const response = await fetch(`${BASE_URL}/get-credentials`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
