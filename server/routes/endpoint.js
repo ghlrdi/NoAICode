@@ -2,48 +2,48 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { Client } from 'pg';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors(({
-  origin: ['https://efficient-celebration-production.up.railway.app'], 
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-})));
+
+// Configurazione CORS corretta
+app.use(cors({
+  origin: ['https://efficient-celebration-production.up.railway.app'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.options('*', cors()); 
-
+// Middleware di logging avanzato
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`, {
+    headers: req.headers,
+    body: req.body
+  });
   next();
 });
+
 // Configurazione PostgreSQL
 const pgConfig = {
-  user: process.env.DB_USER || 'stefano',
-  password: process.env.DB_PASSWORD || 'Stefano2025@',
-  host: process.env.DB_HOST || '109.234.62.45',
-  database: process.env.DB_NAME || 'mydb',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: process.env.DB_SSL === 'false'
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT),
+  ssl: process.env.DB_SSL === 'true'
 };
 
-// Creazione e connessione del client
 const client = new Client(pgConfig);
 
 client.connect()
-  .then(() => {
-    console.log('✅ Connesso al database PostgreSQL');
-  })
-  .catch((err) => {
-    console.error('❌ Errore connessione database:', err.message);
-    console.log('⚠️ Server avviato senza database - solo endpoint di test disponibili');
-  });
-
-// Avvio server indipendentemente dalla connessione database
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`API listening on port ${PORT}`));
+  .then(() => console.log('✅ Connesso al database PostgreSQL'))
+  .catch(err => console.error('❌ Errore connessione database:', err));
 
 // Middleware per iniettare il client nelle request
 app.use((req, res, next) => {
@@ -52,97 +52,77 @@ app.use((req, res, next) => {
   next();
 });
 
-// Endpoint per salvare credenziali
-app.post('/api/save-credentials', async (req, res) => {
-  const { email, password } = req.body;
+// ======================================
+// TUTTE LE ROUTE API DEVONO VENIRE PRIMA
+// ======================================
 
-  try {
-    console.log("account creato")
-    await req.db.query(
-      'INSERT INTO Utenti (email, password) VALUES ($1, $2)',
-      [email, password]
-    );
-    res.status(200).json({ message: 'Dati salvati correttamente' });
-  } catch (err) {
-    console.error('❌ ERRORE DETTAGLIATO:', err);
-    res.status(500).json({ error: 'Errore nel salvataggio' });
-  }
+// Endpoint di test semplice
+app.post('/api/test-post', (req, res) => {
+  res.json({ 
+    success: true,
+    message: "Test POST funzionante",
+    receivedBody: req.body
+  });
 });
 
 // Endpoint per verificare esistenza email
 app.post('/api/check-credentials', async (req, res) => {
   try {
-    // 1. Controlla connessione al database
     if (!client._connected) {
-      console.error('⚠️ Tentativo di accesso con database disconnesso');
       return res.status(500).json({ 
-        error: "Database non disponibile",
-        details: "Il server non può connettersi al database"
+        error: "Database non disponibile"
       });
     }
 
-    // 2. Valida l'input
-    if (!req.body || !req.body.email) {
-      console.warn('❌ Richiesta malformata:', req.body);
+    if (!req.body?.email) {
       return res.status(400).json({ 
-        error: "Email mancante",
-        details: "Il campo 'email' è obbligatorio nel body della richiesta"
+        error: "Email mancante"
       });
     }
 
     const { email } = req.body;
-
-    // 3. Log della richiesta (solo in sviluppo)
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`🔍 Verifica credenziali per: ${email}`);
-    }
-
-    // 4. Interroga il database
     const result = await client.query(
       'SELECT 1 FROM Utenti WHERE email = $1',
       [email]
     );
-
     
     const exists = result.rowCount > 0;
-    
-    if (exists) {
-      console.log(`✅ Email trovata: ${email}`);
-    } else {
-      console.warn(`⚠️ Email non registrata: ${email}`);
-    }
-
-    res.status(200).json({ 
-      exists,
-      message: exists ? "Email esistente" : "Email non registrata"
-    });
-
+    res.status(200).json({ exists });
   } catch (err) {
-    // 6. Gestione errori
-    console.error('🔥 Errore in /check-credentials:', err.stack);
-    
+    console.error('Errore in /check-credentials:', err);
     res.status(500).json({
       error: "Errore interno del server",
-      details: process.env.NODE_ENV === 'production' 
-        ? "Si è verificato un errore" 
-        : err.message,
-      code: "DB_QUERY_ERROR"
+      details: process.env.NODE_ENV === 'production' ? null : err.message
     });
+  }
+});
+
+// Endpoint per salvare credenziali
+app.post('/api/save-credentials', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    await client.query(
+      'INSERT INTO Utenti (email, password) VALUES ($1, $2)',
+      [email, password]
+    );
+    res.status(200).json({ message: 'Dati salvati correttamente' });
+  } catch (err) {
+    console.error('Errore in /save-credentials:', err);
+    res.status(500).json({ error: 'Errore nel salvataggio' });
   }
 });
 
 // Endpoint per verificare credenziali complete
 app.post('/api/check-all-credentials', async (req, res) => {
   const { email, password } = req.body;
-
   try {
-    const result = await req.db.query(
+    const result = await client.query(
       'SELECT 1 FROM Utenti WHERE email = $1 AND password = $2',
       [email, password]
     );
     res.status(200).json({ exists: result.rowCount > 0 });
   } catch (err) {
-    console.error('❌ ERRORE DETTAGLIATO:', err);
+    console.error('Errore in /check-all-credentials:', err);
     res.status(500).json({ error: 'Errore nel controllo credenziali' });
   }
 });
@@ -150,31 +130,29 @@ app.post('/api/check-all-credentials', async (req, res) => {
 // Endpoint per eliminare credenziali
 app.post('/api/del-credentials', async (req, res) => {
   const { email } = req.body;
-
   try {
-    await req.db.query(
+    await client.query(
       'DELETE FROM Utenti WHERE email = $1',
       [email]
     );
     res.status(200).json({ message: 'Dati eliminati correttamente' });
   } catch (err) {
-    console.error('❌ ERRORE DETTAGLIATO:', err);
-    res.status(500).json({ error: "Errore nell'eliminazione dell'account" });
+    console.error('Errore in /del-credentials:', err);
+    res.status(500).json({ error: "Errore nell'eliminazione" });
   }
 });
 
 // Endpoint per modificare password
 app.post('/api/change-credentials', async (req, res) => {
   const { email, password } = req.body;
-
   try {
-    await req.db.query(
+    await client.query(
       'UPDATE Utenti SET password = $1 WHERE email = $2',
       [password, email]
     );
-    res.status(200).json({ message: 'Password modificata correttamente' });
+    res.status(200).json({ message: 'Password modificata' });
   } catch (err) {
-    console.error('❌ ERRORE DETTAGLIATO:', err);
+    console.error('Errore in /change-credentials:', err);
     res.status(500).json({ error: 'Errore nel cambio password' });
   }
 });
@@ -182,38 +160,35 @@ app.post('/api/change-credentials', async (req, res) => {
 // Endpoint per ottenere tutti gli utenti
 app.get('/api/get-credentials', async (req, res) => {
   try {
-    const result = await req.db.query('SELECT * FROM Utenti');
+    const result = await client.query('SELECT * FROM Utenti');
     res.status(200).json(result.rows);
   } catch (err) {
-    console.error('❌ ERRORE DETTAGLIATO:', err);
+    console.error('Errore in /get-credentials:', err);
     res.status(500).json({ error: 'Errore nel recupero dati' });
   }
 });
 
-// Production test endpoint for deployment verification
-// Accessible via both GET and POST for server health checks
+// Endpoint di test per deployment
 app.get('/api/test-fetch', (req, res) => {
   res.status(200).json({ message: "Test fetch OK" });
 });
 
-app.post('/api/test-fetch', (req, res) => {
-  res.status(200).json({ message: "Test fetch OK" });
-});
-
-// Endpoint di test
-app.get('/', (req, res) => {
-  res.send('🚀 Server Express attivo con PostgreSQL!');
-});
-
-import path from 'path';
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// ======================================
+// SOLO DOPO TUTTE LE API:
+// ======================================
 
 // Serve static files from Vite's build
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
-// Catch-all to send index.html for SPA routes
+// Catch-all SOLO per GET (SPA fallback)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
+// Avvio server
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server in ascolto sulla porta ${PORT}`);
+  console.log(`Modalità: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Connesso al DB: ${client._connected ? '✅' : '❌'}`);
 });
