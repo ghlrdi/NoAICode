@@ -6,7 +6,7 @@ import { Client } from 'pg';
 
 const app = express();
 app.use(cors(({
-  origin: ['https:/efficient-celebration-production.up.railway.app'], 
+  origin: ['https://efficient-celebration-production.up.railway.app'], 
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
 })));
 
