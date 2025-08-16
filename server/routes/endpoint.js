@@ -82,7 +82,7 @@ app.post('/api/check-credentials', async (req, res) => {
 
     const { email } = req.body;
     const result = await client.query(
-      'SELECT 1 FROM Utenti WHERE email = $1',
+      'SELECT 1 FROM utenti WHERE email = $1',
       [email]
     );
     
@@ -102,7 +102,7 @@ app.post('/api/save-credentials', async (req, res) => {
   const { email, password } = req.body;
   try {
     await client.query(
-      'INSERT INTO Utenti (email, password) VALUES ($1, $2)',
+      'INSERT INTO utenti (email, password) VALUES ($1, $2)',
       [email, password]
     );
     res.status(200).json({ message: 'Dati salvati correttamente' });
@@ -117,7 +117,7 @@ app.post('/api/check-all-credentials', async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await client.query(
-      'SELECT 1 FROM Utenti WHERE email = $1 AND password = $2',
+      'SELECT 1 FROM utenti WHERE email = $1 AND password = $2',
       [email, password]
     );
     res.status(200).json({ exists: result.rowCount > 0 });
@@ -132,7 +132,7 @@ app.post('/api/del-credentials', async (req, res) => {
   const { email } = req.body;
   try {
     await client.query(
-      'DELETE FROM Utenti WHERE email = $1',
+      'DELETE FROM utenti WHERE email = $1',
       [email]
     );
     res.status(200).json({ message: 'Dati eliminati correttamente' });
@@ -147,7 +147,7 @@ app.post('/api/change-credentials', async (req, res) => {
   const { email, password } = req.body;
   try {
     await client.query(
-      'UPDATE Utenti SET password = $1 WHERE email = $2',
+      'UPDATE utenti SET password = $1 WHERE email = $2',
       [password, email]
     );
     res.status(200).json({ message: 'Password modificata' });
@@ -160,7 +160,7 @@ app.post('/api/change-credentials', async (req, res) => {
 // Endpoint per ottenere tutti gli utenti
 app.get('/api/get-credentials', async (req, res) => {
   try {
-    const result = await client.query('SELECT * FROM Utenti');
+    const result = await client.query('SELECT * FROM utenti');
     res.status(200).json(result.rows);
   } catch (err) {
     console.error('Errore in /get-credentials:', err);
